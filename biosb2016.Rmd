@@ -1,0 +1,185 @@
+---
+# TODO: make plots transparent
+title: "Draft"
+author: "Mattias de Hollander"
+date: "April 20, 2016"
+output:
+  ioslides_presentation:
+    css: style.css
+    # Change to svg for highres images
+    dev: png
+    fig_height: 5
+    fig_width: 10
+    incremental: yes
+    logo: images/NIOOlogov9.svg
+    self_contained: yes
+    widescreen: yes
+  beamer_presentation:
+    incremental: yes
+subtitle: Reconstruction of draft genomes and full length rRNA genes from plant root
+  and nodule metagenomes
+---
+
+
+# Introduction
+
+## Plant root and nodule metagenomes
+
+<div class="centered">
+<img src="images/backtotheroots.png" width = 700/>  
+</div>
+
+## Treatments
+
+- conducive / suppressive
+- CUR /EST (salt / non-salt)
+
+## Sequencing details
+
+- Hiseq / Miseq
+- plant 
+- throughput
+
+  Right Left     Center   Default
+------- ------ ---------- -------
+     12 12        12      12
+    123 123       123     123
+      1 1          1      1
+
+# Assembly
+
+## Diversity plots
+
+- endo vs rhizo
+- diversity nodules
+
+## Analysis pipeline
+
+- snakemake
+- overview
+- highlight
+
+## Assembly results
+
+- table with mapping/stats
+
+# Annotation
+
+## pipeline
+
+## pictures victorc
+
+# Binning
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+library(mmgenome)
+library(ggplot2)
+library(RColorBrewer)
+# Load gtools for the mixedsort function
+library(gtools)
+
+load('data/mmgenome.RData')
+```
+
+## Introduction
+
+<div class="centered">
+<img src="images/albertsen.jpg" width = 700/>  
+</div>
+
+## 
+
+<div class="centered">
+<img src="images/mmgenome.jpg" width = 700/>  
+</div>
+
+## GC vs coverage
+```{r gccov,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "essential", minlength = 200)
+p
+```
+
+## 16S
+```{r 16S,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+ssu = read.table("data/contigs.ssu.txt", header = F, sep = "\t")$V1
+highlight <- as.character(ssu)
+sdata <- subset(d$scaffolds, scaffold %in% highlight)
+p + geom_point(data = sdata, color = "darkred", size = 3, shape = 8)
+```
+
+## Colored bins
+```{r bins, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+# Sort the bins by name
+# Note that the dot in the bin name of metabat needs to be removed from the input
+d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
+colourCount = length(unique(d$scaffolds$bin_sorted))
+# Set1 and Dark2 work
+getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+
+p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "bin_sorted", minlength = 5000)
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+# Position the legend
+p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
+#p <- p + ylab("Coverage") + xlab("GC") + theme_gray(base_size = 24)
+p
+#ggplotly()
+```
+
+## Tetra nucleotide
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+p <- mmplot(data = d, x = "PC1", y = "PC2", log.x = F, log.y = F, color= "none", minlength = 3000)
+p
+```
+
+## Tetra colored
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+p <- mmplot(data = d, x = "PC1", y = "PC2", log.x = F, log.y = F, color= "bin_sorted", minlength = 3000)
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+# Position the legend
+p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
+p
+```
+
+## Conclusion
+
+## Acknoledgements
+
+# 
+
+## Average Genome Size
+
+```{r ags, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+ags = read.table('data/ags.txt',header=TRUE)
+
+p <- ggplot(data=ags, aes(x=1:dim(ags)[1],y=average_genome_size.)) +
+                                                                                                                                                                                    geom_bar(stat="identity")
+p
+#ggplotly()
+```
+
+## Gene length
+
+```{r genelength, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+d = read.table('data/length_abundsum.txt')
+plot(d)
+```
+
+## Rhizo vs Endo
+
+- plot diversity
+
+## Image test
+
+![](images/environments.png){#id .class width=30px height=2px}
+
+## Image test2
+<!-- This works -->
+<img src="images/environments.png" width = 400/>  
+
+## Slide with centered image and citation
+
+<div class="centered">
+<img src="img/lindquist-wager-fig-4.7.jpg" height=500px>
+
+[@lindquist_wager_2015]
+</div>
