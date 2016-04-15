@@ -67,16 +67,11 @@ QC                 4.16 Gbp       47.2 Gbp
 Gbp sample             0.23           4.72
 
 ## Diversity plots
-<!--
-- endo vs rhizo
-- diversity nodules
--->
 
-```{r,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-library(phyloseq)
-load('data/1511KMI-0007.RData')
-glom_filt = filter_taxa(glom_class, function(x) sum(x) > 500, TRUE)
-plot_bar(glom_filt, "Sample", "Abundance", "Class")
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+load("data/16S.RData")
+
+plot_richness(all, x = "Type", measures = c("Chao1", "Shannon"))
 ```
 
 # Assembly
@@ -250,6 +245,31 @@ bin.9   f__Moraxellaceae             99.45	        0.14
 bin.4   g__Burkholderia              98.46	        0.57
 bin.10  o__Bacillales                97.80	        1.34
 
+## Endosphere binning
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+library(mmgenome)
+library(ggplot2)
+library(RColorBrewer)
+# Load gtools for the mixedsort function
+library(gtools)
+
+load('data/mmgenome.endo.RData')
+
+# Sort the bins by name
+# Note that the dot in the bin name of metabat needs to be removed from the input
+d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
+
+p <- mmplot(data = d, x = "S1", y = "C4", log.x = T, log.y = T, color = "bin_sorted", minlength = 30000)
+p <- p + scale_x_log10(limits = c(0.3,100))
+p <- p + scale_y_log10(limits = c(0.3,100))
+
+colourCount = length(unique(d$scaffolds$bin_sorted))
+# Set1 and Dark2 work
+getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+
+p
+```
 
 ## Conclusion
 
@@ -265,6 +285,7 @@ bin.10  o__Bacillales                97.80	        1.34
 - Noriko Cassman
 - Victor Carrion
 - Marcio Leite
+- Juan Perez
 - Eiko Kuramae
 - Jos Raaijmakers
 
