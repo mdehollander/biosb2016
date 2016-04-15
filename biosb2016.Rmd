@@ -1,6 +1,8 @@
 ---
 # TODO: make plots transparent
-title: "Draft"
+title: ""
+subtitle: Reconstruction of draft genomes and full length rRNA genes from plant root
+  and nodule metagenomes
 author: "Mattias de Hollander"
 date: "April 20, 2016"
 output:
@@ -10,14 +12,10 @@ output:
     dev: png
     fig_height: 5
     fig_width: 10
-    incremental: yes
+    incremental: no
     logo: images/NIOOlogov9.svg
     self_contained: yes
     widescreen: yes
-  beamer_presentation:
-    incremental: yes
-subtitle: Reconstruction of draft genomes and full length rRNA genes from plant root
-  and nodule metagenomes
 ---
 
 
@@ -29,45 +27,132 @@ subtitle: Reconstruction of draft genomes and full length rRNA genes from plant 
 <img src="images/backtotheroots.png" width = 700/>  
 </div>
 
-## Treatments
-
+## Endophytic metagenome (NL)
+<!--
 - conducive / suppressive
 - CUR /EST (salt / non-salt)
+- shannon diversity: nodules, endo, rhizo, bulk
+- 16S extracted metagenomes OR gene classification
+- difference 16S primers / 16S shotgun
+-->
+<div class="centered">
+<img src="images/suppresive_soil.png" width = 800/>  
+</div>
+
+<reference>Weller, D.M. et.al (2002). Microbial Populations Responsible for Specific Soil Suppressiveness to Plant Pathogens. Annual Review of Phytopathology 40, 309–348.</reference>
+
+
+## Nodule metagenome (Brazil)
+
+<div class="centered">
+<img src="images/marcio/nodule_sampling.png" width = 880/>  
+</div>
+
+<slidethanks>Márcio Leite</slidethanks>
+
+<div class="notes">
+We selected the leguminous plant specie Mimosa pigra L. sub-family Mimosoideae, tribe Eumimoseae and sampled in two sampling regions: one with the presence of saltwater intrusion (Curral da Igreja located 4.2 km from the mangrove region) and another one located far from the saltwater intrusion (Estirão Grande placed at 57.2 km further river upstream). 
+</div>
+
 
 ## Sequencing details
 
-- Hiseq / Miseq
-- plant 
-- throughput
+Feature              Nodule           Endo   
+------------- -------------  -------------
+Platform              MiSeq  MiSeq + HiSeq
+Read length             300            300
+Samples                  18             10
+Raw                8.32 Gbp      191.6 Gbp    
+QC                 4.16 Gbp       47.2 Gbp
+Gbp sample             0.23           4.72
 
-  Right Left     Center   Default
-------- ------ ---------- -------
-     12 12        12      12
-    123 123       123     123
-      1 1          1      1
+## Diversity plots
+<!--
+- endo vs rhizo
+- diversity nodules
+-->
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+library(phyloseq)
+load('data/1511KMI-0007.RData')
+glom_filt = filter_taxa(glom_class, function(x) sum(x) > 500, TRUE)
+plot_bar(glom_filt, "Sample", "Abundance", "Class")
+```
 
 # Assembly
 
-## Diversity plots
-
-- endo vs rhizo
-- diversity nodules
-
 ## Analysis pipeline
 
-- snakemake
-- overview
-- highlight
+<div class="centered">
+<img src="images/workflow_overview.svg" width = 850/>  
+</div>
+
+<reference>https://gitlab.bioinf.nioo.knaw.nl/shotgun-metagenomics/nodule-metagenome</reference>
 
 ## Assembly results
+<!--- 
+samtools flagstat
+mmstats
+bandage
+--->
 
-- table with mapping/stats
+Feature                   Nodule           Endo   
+------------------ -------------  -------------
+assembler                megahit         SPAdes
+% mapped                   99.65
+properly paired            78.16
+N50                       10,631          1,652
+Average cov                  1.6
+\# essential genes         5,769
+Nodes                    133,461                    
+Edges                    152,761                       
+                                
 
 # Annotation
 
 ## pipeline
 
 ## pictures victorc
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+load("data/endo.RData")
+endo_plot            <- plot_ordination(endo_metg, endo_total.ord, type = "sites",
+                                        color = "Treatment",
+                                        shape = "Treatment", 
+                                        title = NULL, label = NULL)
+endo_plot            = endo_plot  + geom_point(aes(shape=Treatment),   
+                                               size = 8) + geom_text(aes(label = Treatment), size=0) +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        #panel.background = element_blank(), axis.line = element_line(size = 1, colour = "black"),
+        rect = element_rect(fill = "white",  colour = "black",
+                            size = 1, linetype = 2),
+        axis.ticks = element_line(colour = "black"),
+        axis.title.x = element_text(face="bold", colour="black", size=30),
+        axis.title.y = element_text(face="bold", colour="black", size=30),
+        axis.text.x  = element_text(face="bold", colour = "black", angle=360, vjust=0.5, size=20),
+        axis.text.y  = element_text(face="bold", colour = "black", angle=360, vjust=0.5, size=20),
+        legend.background = element_rect(colour = "white"), 
+        legend.key = element_rect(fill = "white", colour = "white"), 
+        legend.key.height = NULL,
+        legend.key.width = NULL, 
+        legend.text = element_text(size = rel(1), colour = "white"), 
+        legend.text.align = NULL, 
+        legend.title = element_text(size = rel(0.5), face = "bold", colour = "white" ,hjust=0), 
+        legend.title.align = NULL, 
+        legend.position = c(0.1,0.9), 
+        legend.direction = NULL, 
+        legend.justification = "center", 
+        legend.box = NULL,
+        panel.background = element_rect(fill = "white", colour = "black", linetype = 1, size = 1.5),
+        panel.border = element_blank(), 
+        panel.grid.major = element_line(colour = "black"), 
+        panel.grid.minor = element_line(colour = "black", size = 0.25))
+
+
+plot(endo_plot)
+```
+
+<slidethanks>Victor Carrión</slidethanks>
 
 # Binning
 
@@ -81,11 +166,25 @@ library(gtools)
 load('data/mmgenome.RData')
 ```
 
-## Introduction
+## 
+
+<div class="centered">
+<img src="images/workflow_binning.png" width = 600/>  
+</div>
+
+<reference>Sangwan, N., Xia, F., and Gilbert, J.A. (2016). Recovering complete and draft population genomes from metagenome datasets. Microbiome 4, 8.</reference>
+
+
+## {.notitle}
+<style type = "text/css">
+.notitle {color: red;}
+</style>
 
 <div class="centered">
 <img src="images/albertsen.jpg" width = 700/>  
 </div>
+
+<slidethanks>Mad Albertsen</slidethanks>
 
 ## 
 
@@ -140,9 +239,38 @@ p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colo
 p
 ```
 
+## Completeness/contamination Checkm
+
+Bin Id  Marker Lineage       Completeness  Contamination     
+------  -------------------  ------------- -------------
+bin.3   f__Paenibacillaceae          99.85	        0.02
+bin.8   o__Actinomycetales           99.81	           0
+bin.7   f__Moraxellaceae             99.51	        0.82
+bin.9   f__Moraxellaceae             99.45	        0.14
+bin.4   g__Burkholderia              98.46	        0.57
+bin.10  o__Bacillales                97.80	        1.34
+
+
 ## Conclusion
 
-## Acknoledgements
+- increasing diversity nodule, endo, rhizo
+- extract full length 16S
+- difference 16S/ metagenome
+- automated/manual binning
+- 16S in bins
+
+## Acknowledgements
+<!--- two columns? --->
+- Vittorio Tracanna
+- Noriko Cassman
+- Victor Carrion
+- Marcio Leite
+- Eiko Kuramae
+- Jos Raaijmakers
+
+<div class="right">
+<img src="images/rmarkdown.png" width=400>
+</div>
 
 # 
 
