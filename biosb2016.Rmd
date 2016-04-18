@@ -1,8 +1,7 @@
 ---
 # TODO: make plots transparent
 title: ""
-subtitle: Reconstruction of draft genomes and full length rRNA genes from plant root
-  and nodule metagenomes
+subtitle: Reconstruction of draft genomes from plant root and nodule metagenomes
 author: "Mattias de Hollander"
 date: "April 20, 2016"
 output:
@@ -11,21 +10,20 @@ output:
     # Change to svg for highres images
     dev: png
     fig_height: 5
-    fig_width: 10
+    fig_width: 8
     incremental: no
     logo: images/NIOOlogov9.svg
     self_contained: yes
-    widescreen: yes
+    widescreen: no
 ---
 
-
-# Introduction
-
-## Plant root and nodule metagenomes
+## Rhizosphere soil environment
 
 <div class="centered">
-<img src="images/backtotheroots.png" width = 700/>  
+<img src="images/backtotheroots.png" width = 750/>  
 </div>
+
+<reference>Philippot, L. et.al. (2013). Nat Rev Micro</reference>
 
 ## Endophytic metagenome (NL)
 <!--
@@ -36,16 +34,39 @@ output:
 - difference 16S primers / 16S shotgun
 -->
 <div class="centered">
-<img src="images/suppresive_soil.png" width = 800/>  
+<img src="images/suppresive_soil.png" width = 750/>  
 </div>
 
-<reference>Weller, D.M. et.al (2002). Microbial Populations Responsible for Specific Soil Suppressiveness to Plant Pathogens. Annual Review of Phytopathology 40, 309–348.</reference>
+<reference>Weller, D.M. et.al (2002). Annual Review of Phytopathology</reference>
 
+## Change of bacterial diversity in plant compartments 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+load("data/16S.RData")
+
+
+p_obs = plot_richness(all, x = "Type", measures = c("Observed"))
+p_sh = plot_richness(all, x = "Type", measures = c("Shannon"))
+
+#df = data.frame(p_obs[1])
+#p <- ggplot(df, aes(data.Type, data.value))
+#p + geom_boxplot() + geom_jitter(width = 0.2) + coord_flip()
+
+
+df = data.frame(p_sh[1])
+p <- ggplot(df, aes(data.Type, data.value))
+p <- p + geom_boxplot() + geom_jitter(width = 0.2) + coord_flip()
+p <- p + xlab("Sample type") + ylab("Shannon index") 
+p <- p + theme(axis.text = element_text(size = rel(1.5)))
+p <- p + theme(axis.title.y = element_text(size = rel(2)))
+p <- p + theme(axis.title.x = element_text(size = rel(2)))
+p
+```
 
 ## Nodule metagenome (Brazil)
 
 <div class="centered">
-<img src="images/marcio/nodule_sampling.png" width = 880/>  
+<img src="images/marcio/nodule_sampling.png" width = 750/>  
 </div>
 
 <slidethanks>Márcio Leite</slidethanks>
@@ -66,17 +87,8 @@ Raw                8.32 Gbp      191.6 Gbp
 QC                 4.16 Gbp       47.2 Gbp
 Gbp sample             0.23           4.72
 
-## Diversity plots
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-load("data/16S.RData")
-
-plot_richness(all, x = "Type", measures = c("Chao1", "Shannon"))
-```
-
-# Assembly
-
-## Analysis pipeline
+## Glueing tools together into a re-usable workflow
 
 <div class="centered">
 <img src="images/workflow_overview.svg" width = 850/>  
@@ -84,7 +96,7 @@ plot_richness(all, x = "Type", measures = c("Chao1", "Shannon"))
 
 <reference>https://gitlab.bioinf.nioo.knaw.nl/shotgun-metagenomics/nodule-metagenome</reference>
 
-## Assembly results
+## Assembly statistics
 <!--- 
 samtools flagstat
 mmstats
@@ -94,18 +106,186 @@ bandage
 Feature                   Nodule           Endo   
 ------------------ -------------  -------------
 assembler                megahit         SPAdes
-% mapped                   99.65
-properly paired            78.16
+\# contigs                74,507      1,627,767
+% mapped                   99.65          98.73
+properly paired            78.16          88.20
 N50                       10,631          1,652
-Average cov                  1.6
 \# essential genes         5,769
-Nodes                    133,461                    
+
+
+<!---Average coverage             1.6--->
+<!---Nodes                    133,461                    
 Edges                    152,761                       
-                                
+--->
 
-# Annotation
+## 
 
-## pipeline
+<div class="centered">
+<img src="images/workflow_binning.png" width = 600/>  
+</div>
+
+<reference>Sangwan, N. et.al. (2016). Microbiome</reference>
+
+
+## {.notitle}
+<style type = "text/css">
+.notitle {color: red;}
+</style>
+
+<div class="centered">
+<img src="images/albertsen.jpg" width = 700/>  
+</div>
+
+<slidethanks>Mads Albertsen</slidethanks>
+
+## 
+
+<div class="centered">
+<img src="images/mmgenome.jpg" width = 700/>  
+</div>
+
+<slidethanks>Mads Albertsen</slidethanks>
+
+## Coverage - GC plots for the nodule metagenome
+```{r bins, echo=FALSE, message=FALSE, warning=FALSE}
+library(mmgenome)
+library(ggplot2)
+library(RColorBrewer)
+# Load gtools for the mixedsort function
+library(gtools)
+
+load('data/mmgenome.RData')
+# Sort the bins by name
+# Note that the dot in the bin name of metabat needs to be removed from the input
+d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
+colourCount = length(unique(d$scaffolds$bin_sorted))
+# Set1 and Dark2 work
+getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+
+p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "bin_sorted", minlength = 5000)
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+# Position the legend
+p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
+p <- p + ylab("Coverage") + xlab("GC") 
+p <- p + theme(axis.text = element_text(size = rel(1.5)))
+p <- p + theme(axis.title.y = element_text(size = rel(2)))
+p <- p + theme(axis.title.x = element_text(size = rel(2)))
+p
+```
+
+## Contigs have also different tetranucleotide frequencies
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+p <- mmplot(data = d, x = "PC1", y = "PC2", log.x = F, log.y = F, color= "bin_sorted", minlength = 3000)
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+# Position the legend
+p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
+p <- p + theme(axis.text = element_text(size = rel(1.5)))
+p <- p + theme(axis.title.y = element_text(size = rel(2)))
+p <- p + theme(axis.title.x = element_text(size = rel(2)))
+p
+```
+
+## Details of the most important bins
+
+Bin Id  Marker Lineage       Completeness  Contamination  Length (Mbp) # Contigs  
+------  -------------------  ------------- -------------  ------------ ---------
+bin.3   f__Paenibacillaceae          99.85	        0.02           6.4        71
+bin.8   o__Actinomycetales           99.81	           0           3.3        57 
+bin.7   f__Moraxellaceae             99.51	        0.82           2.9        61
+bin.9   f__Moraxellaceae             99.45	        0.14           2.9        72
+bin.4   g__Burkholderia              98.46	        0.57           7.4       140  
+bin.10  o__Bacillales                97.80	        1.34           4.9       139
+
+## Classification by essential and 16S rRNA genes
+```{r gccov,echo=FALSE, message=FALSE, warning=FALSE}
+p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "essential", minlength = 5000)
+ssu = read.table("data/contigs.ssu.txt", header = F, sep = "\t")$V1
+highlight <- as.character(ssu)
+sdata <- subset(d$scaffolds, scaffold %in% highlight)
+p <- p + geom_point(data = sdata, color = "darkred", size = 3, shape = 8)
+p <- p + ylab("Coverage") + xlab("GC") 
+p <- p + theme(axis.text = element_text(size = rel(1.5)))
+p <- p + theme(axis.title.y = element_text(size = rel(2)))
+p <- p + theme(axis.title.x = element_text(size = rel(2)))
+p
+```
+
+## Recovering full length 16S rRNA's
+
+Method              Nodule  Endo
+------------------- ------  ----
+\#Bins                  22   139
+% used contigs         3.3   4.7
+cross assembly           0    39
+per sample assembly      8
+emirge                  10
+(reago)
+
+## Issues with 16S rRNA
+
+- Many 16S rRNA sequences are only partial assembled into short contigs
+- The sequence characteristics of 16S sequences are different compared to protein coding genes:
+    - average coverage and sequence composition 
+    - more conserved
+- Therefore they are missed by automated binning methods and manual annotation is needed
+ 
+## Endosphere binning
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+library(mmgenome)
+library(ggplot2)
+library(RColorBrewer)
+# Load gtools for the mixedsort function
+library(gtools)
+
+load('data/mmgenome.endo.RData')
+
+# Sort the bins by name
+# Note that the dot in the bin name of metabat needs to be removed from the input
+d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
+
+p <- mmplot(data = d, x = "S1", y = "C4", log.x = T, log.y = T, color = "bin_sorted", minlength = 30000)
+p <- p + scale_x_log10(limits = c(0.3,100))
+p <- p + scale_y_log10(limits = c(0.3,100))
+
+colourCount = length(unique(d$scaffolds$bin_sorted))
+# Set1 and Dark2 work
+getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
+p <- p + scale_colour_manual(values=getPalette(colourCount))
+# Remove legend
+p <- p + theme(legend.position="none")
+# increase font size
+p <- p + theme(axis.text = element_text(size = rel(1.5)))
+p <- p + theme(axis.title.y = element_text(size = rel(2)))
+p <- p + theme(axis.title.x = element_text(size = rel(2)))
+p
+```
+
+
+## Conclusions
+
+- Plant root-associated compartments have a different diversity
+- We are able to extract draft genomes from plant root and nodule metagenomes 
+- Visualization contig characteristics enables
+    - manual binning for low-diversity samples (plant nodules)
+    - verification of automated binning methods
+- Creating genome bins together with its rRNA sequence remains problematic when using only coverage and sequence composition
+
+## Acknowledgements
+<!--- two columns? --->
+- Vittorio Tracanna (Poster #77)
+- Noriko Cassman (Poster #70)
+- Victor Carrion
+- Marcio Leite
+- Juan Perez
+- Victor de Jager 
+- Eiko Kuramae
+- Jos Raaijmakers
+
+<div align="right">
+<img src="images/rmarkdown.png" width=400>
+</div>
+
+##
 
 ## pictures victorc
 
@@ -148,187 +328,3 @@ plot(endo_plot)
 ```
 
 <slidethanks>Victor Carrión</slidethanks>
-
-# Binning
-
-```{r,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-library(mmgenome)
-library(ggplot2)
-library(RColorBrewer)
-# Load gtools for the mixedsort function
-library(gtools)
-
-load('data/mmgenome.RData')
-```
-
-## 
-
-<div class="centered">
-<img src="images/workflow_binning.png" width = 600/>  
-</div>
-
-<reference>Sangwan, N., Xia, F., and Gilbert, J.A. (2016). Recovering complete and draft population genomes from metagenome datasets. Microbiome 4, 8.</reference>
-
-
-## {.notitle}
-<style type = "text/css">
-.notitle {color: red;}
-</style>
-
-<div class="centered">
-<img src="images/albertsen.jpg" width = 700/>  
-</div>
-
-<slidethanks>Mad Albertsen</slidethanks>
-
-## 
-
-<div class="centered">
-<img src="images/mmgenome.jpg" width = 700/>  
-</div>
-
-## GC vs coverage
-```{r gccov,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "essential", minlength = 200)
-p
-```
-
-## 16S
-```{r 16S,echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-ssu = read.table("data/contigs.ssu.txt", header = F, sep = "\t")$V1
-highlight <- as.character(ssu)
-sdata <- subset(d$scaffolds, scaffold %in% highlight)
-p + geom_point(data = sdata, color = "darkred", size = 3, shape = 8)
-```
-
-## Colored bins
-```{r bins, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-# Sort the bins by name
-# Note that the dot in the bin name of metabat needs to be removed from the input
-d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
-colourCount = length(unique(d$scaffolds$bin_sorted))
-# Set1 and Dark2 work
-getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-
-p <- mmplot(data = d, x = "gc", y = "MPR1.1n.EST", log.x = F, log.y = T, color = "bin_sorted", minlength = 5000)
-p <- p + scale_colour_manual(values=getPalette(colourCount))
-# Position the legend
-p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
-#p <- p + ylab("Coverage") + xlab("GC") + theme_gray(base_size = 24)
-p
-#ggplotly()
-```
-
-## Tetra nucleotide
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-p <- mmplot(data = d, x = "PC1", y = "PC2", log.x = F, log.y = F, color= "none", minlength = 3000)
-p
-```
-
-## Tetra colored
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-p <- mmplot(data = d, x = "PC1", y = "PC2", log.x = F, log.y = F, color= "bin_sorted", minlength = 3000)
-p <- p + scale_colour_manual(values=getPalette(colourCount))
-# Position the legend
-p <- p + theme(legend.position="right", legend.box = "horizontal") + guides(colour = guide_legend(ncol = 2, override.aes = list(alpha = 1, size = 5, shape = 19)))
-p
-```
-
-## Completeness/contamination Checkm
-
-Bin Id  Marker Lineage       Completeness  Contamination     
-------  -------------------  ------------- -------------
-bin.3   f__Paenibacillaceae          99.85	        0.02
-bin.8   o__Actinomycetales           99.81	           0
-bin.7   f__Moraxellaceae             99.51	        0.82
-bin.9   f__Moraxellaceae             99.45	        0.14
-bin.4   g__Burkholderia              98.46	        0.57
-bin.10  o__Bacillales                97.80	        1.34
-
-## Endosphere binning
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-library(mmgenome)
-library(ggplot2)
-library(RColorBrewer)
-# Load gtools for the mixedsort function
-library(gtools)
-
-load('data/mmgenome.endo.RData')
-
-# Sort the bins by name
-# Note that the dot in the bin name of metabat needs to be removed from the input
-d$scaffolds$bin_sorted <- factor(d$scaffolds$bin, levels = mixedsort(levels(d$scaffolds$bin)))
-
-p <- mmplot(data = d, x = "S1", y = "C4", log.x = T, log.y = T, color = "bin_sorted", minlength = 30000)
-p <- p + scale_x_log10(limits = c(0.3,100))
-p <- p + scale_y_log10(limits = c(0.3,100))
-
-colourCount = length(unique(d$scaffolds$bin_sorted))
-# Set1 and Dark2 work
-getPalette = colorRampPalette(brewer.pal(8, "Dark2"))
-p <- p + scale_colour_manual(values=getPalette(colourCount))
-
-p
-```
-
-## Conclusion
-
-- increasing diversity nodule, endo, rhizo
-- extract full length 16S
-- difference 16S/ metagenome
-- automated/manual binning
-- 16S in bins
-
-## Acknowledgements
-<!--- two columns? --->
-- Vittorio Tracanna
-- Noriko Cassman
-- Victor Carrion
-- Marcio Leite
-- Juan Perez
-- Eiko Kuramae
-- Jos Raaijmakers
-
-<div class="right">
-<img src="images/rmarkdown.png" width=400>
-</div>
-
-# 
-
-## Average Genome Size
-
-```{r ags, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-ags = read.table('data/ags.txt',header=TRUE)
-
-p <- ggplot(data=ags, aes(x=1:dim(ags)[1],y=average_genome_size.)) +
-                                                                                                                                                                                    geom_bar(stat="identity")
-p
-#ggplotly()
-```
-
-## Gene length
-
-```{r genelength, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-d = read.table('data/length_abundsum.txt')
-plot(d)
-```
-
-## Rhizo vs Endo
-
-- plot diversity
-
-## Image test
-
-![](images/environments.png){#id .class width=30px height=2px}
-
-## Image test2
-<!-- This works -->
-<img src="images/environments.png" width = 400/>  
-
-## Slide with centered image and citation
-
-<div class="centered">
-<img src="img/lindquist-wager-fig-4.7.jpg" height=500px>
-
-[@lindquist_wager_2015]
-</div>
