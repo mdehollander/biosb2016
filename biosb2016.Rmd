@@ -25,20 +25,6 @@ output:
 
 <reference>Philippot, L. et.al. (2013). Nat Rev Micro</reference>
 
-## Endophytic metagenome (NL)
-<!--
-- conducive / suppressive
-- CUR /EST (salt / non-salt)
-- shannon diversity: nodules, endo, rhizo, bulk
-- 16S extracted metagenomes OR gene classification
-- difference 16S primers / 16S shotgun
--->
-<div class="centered">
-<img src="images/suppresive_soil.png" width = 750/>  
-</div>
-
-<reference>Weller, D.M. et.al (2002). Annual Review of Phytopathology</reference>
-
 ## Change of bacterial diversity in plant compartments 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
@@ -78,7 +64,7 @@ We selected the leguminous plant specie Mimosa pigra L. sub-family Mimosoideae, 
 
 ## Sequencing details
 
-Feature              Nodule           Endo   
+Feature         Nodule (BR)      Endo (NL)   
 ------------- -------------  -------------
 Platform              MiSeq  MiSeq + HiSeq
 Read length             300            300
@@ -110,9 +96,9 @@ assembler                megahit         SPAdes
 % mapped                   99.65          98.73
 properly paired            78.16          88.20
 N50                       10,631          1,652
-\# essential genes         5,769
 
 
+<!---\# essential genes         5,769 --->
 <!---Average coverage             1.6--->
 <!---Nodes                    133,461                    
 Edges                    152,761                       
@@ -126,17 +112,6 @@ Edges                    152,761
 
 <reference>Sangwan, N. et.al. (2016). Microbiome</reference>
 
-
-## {.notitle}
-<style type = "text/css">
-.notitle {color: red;}
-</style>
-
-<div class="centered">
-<img src="images/albertsen.jpg" width = 700/>  
-</div>
-
-<slidethanks>Mads Albertsen</slidethanks>
 
 ## 
 
@@ -210,6 +185,7 @@ p <- p + theme(axis.title.x = element_text(size = rel(2)))
 p
 ```
 
+<!---
 ## Recovering full length 16S rRNA's
 
 Method              Nodule  Endo
@@ -220,6 +196,7 @@ cross assembly           0    39
 per sample assembly      8
 emirge                  10
 (reago)
+--->
 
 ## Issues with 16S rRNA
 
@@ -227,9 +204,10 @@ emirge                  10
 - The sequence characteristics of 16S sequences are different compared to protein coding genes:
     - average coverage and sequence composition 
     - more conserved
-- Therefore they are missed by automated binning methods and manual annotation is needed
+- Therefore they are missed by automated binning methods
+- Assembly specific for 16 rRNA genes with tools like EMIRGE or Reago would help the annotation genome bins (future work)
  
-## Endosphere binning
+## The endosphere is a more complex environment
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 library(mmgenome)
 library(ggplot2)
@@ -265,15 +243,16 @@ p
 
 - Plant root-associated compartments have a different diversity
 - We are able to extract draft genomes from plant root and nodule metagenomes 
-- Visualization contig characteristics enables
+- Visualization of contig characteristics enables
     - manual binning for low-diversity samples (plant nodules)
     - verification of automated binning methods
 - Creating genome bins together with its rRNA sequence remains problematic when using only coverage and sequence composition
 
 ## Acknowledgements
 <!--- two columns? --->
-- Vittorio Tracanna (Poster #77)
-- Noriko Cassman (Poster #70)
+<div class="columns-2">
+- Vittorio Tracanna (Poster#77)
+- Noriko Cassman (Poster#70)
 - Victor Carrion
 - Marcio Leite
 - Juan Perez
@@ -281,11 +260,24 @@ p
 - Eiko Kuramae
 - Jos Raaijmakers
 
-<div align="right">
 <img src="images/rmarkdown.png" width=400>
 </div>
 
 ##
+
+## Endophytic metagenome (NL)
+<!--
+- conducive / suppressive
+- CUR /EST (salt / non-salt)
+- shannon diversity: nodules, endo, rhizo, bulk
+- 16S extracted metagenomes OR gene classification
+- difference 16S primers / 16S shotgun
+-->
+<div class="centered">
+<img src="images/suppresive_soil.png" width = 750/>  
+</div>
+
+<reference>Weller, D.M. et.al (2002). Annual Review of Phytopathology</reference>
 
 ## pictures victorc
 
